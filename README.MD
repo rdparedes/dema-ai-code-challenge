@@ -1,3 +1,5 @@
+## Setup
+
 This project was created using poetry. To install poetry, run the following command:
 
 ```bash
@@ -22,17 +24,13 @@ Then run the server:
 uvicorn app.main:app --root-path app/ --reload
 ```
 
----
-
-Importing data from the csv files:
+## Importing data from the csv files:
 
 ```bash
 python scripts/import_data.py
 ```
 
----
-
-Sample queries:
+## Sample queries:
 
 ```bash
 # Get all products
