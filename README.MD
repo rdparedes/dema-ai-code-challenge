@@ -44,7 +44,7 @@ uvicorn app.main:app --root-path app/ --reload
 ## Importing data from the csv files:
 
 ```bash
-python scripts/import_data.py
+python scripts/import_data.py -d
 ```
 
 ## Database migrations
