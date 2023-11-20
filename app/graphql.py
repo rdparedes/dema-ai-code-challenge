@@ -1,18 +1,18 @@
-from typing import List
+from typing import List, Optional
+from .models import Product, Product_Pydantic
 
 import strawberry
 from strawberry.asgi import GraphQL
 
-from .models import Product, Product_Pydantic
-
 
 @strawberry.type
 class ProductType:
-    product_id: str
+    product_id: Optional[str]
     name: str
     quantity: int
     category: str
     sub_category: str
+    orders: List["OrderType"]
 
 
 @strawberry.type
@@ -24,29 +24,34 @@ class OrderType:
     amount: float
     channel: str
     channel_group: str
-    campaign: str
+    campaign: Optional[str]
     date_time: str
-    product: ProductType
 
 
 @strawberry.type
 class Query:
+    # TODO: Implement filtering and pagination with strawberry
     @strawberry.field
-    async def products(self, page: int = 1, page_size: int = 10) -> List[ProductType]:
-        products = await Product_Pydantic.from_queryset(
-            Product.all()
-            .limit(page_size)
-            .offset((page - 1) * page_size)
-            .prefetch_related("orders")
-        )
-        return products
+    async def products(
+        self,
+        name: Optional[str] = None,
+        category: Optional[str] = None,
+        sub_category: Optional[str] = None,
+    ) -> List[ProductType]:
+        query = Product.all()
 
-    @strawberry.field
-    async def product(self, product_id: str) -> ProductType:
-        product = await Product_Pydantic.from_queryset_single(
-            Product.get(product_id=product_id)
+        if name is not None:
+            query = query.filter(name__icontains=name)
+        if category is not None:
+            query = query.filter(category__icontains=category)
+        if sub_category is not None:
+            query = query.filter(sub_category__icontains=sub_category)
+
+        products = await Product_Pydantic.from_queryset(
+            query.prefetch_related("orders")
         )
-        return product
+
+        return products
 
 
 schema = strawberry.Schema(query=Query)

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from fastapi import FastAPI
 from tortoise.contrib.fastapi import register_tortoise
@@ -14,12 +14,24 @@ app.add_websocket_route("/graphql", graphql_app)
 
 
 @app.get("/products", response_model=List[Product_Pydantic])
-async def get_products(page: int = 1, page_size: int = 10):
+async def get_products_handler(
+    page: int = 1,
+    page_size: int = 10,
+    name: Optional[str] = None,
+    category: Optional[str] = None,
+    sub_category: Optional[str] = None,
+):
+    query = Product.all()
+
+    if name is not None:
+        query = query.filter(name__icontains=name)
+    if category is not None:
+        query = query.filter(category__icontains=category)
+    if sub_category is not None:
+        query = query.filter(sub_category__icontains=sub_category)
+
     products = await Product_Pydantic.from_queryset(
-        Product.all()
-        .limit(page_size)
-        .offset((page - 1) * page_size)
-        .prefetch_related("orders")
+        query.limit(page_size).offset((page - 1) * page_size).prefetch_related("orders")
     )
     return products
 
